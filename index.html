@@ -30,15 +30,21 @@
       width: 95%;
       max-width: 450px;
       text-align: center;
-      position: relative;
       z-index: 2;
+      position: relative;
     }
 
     h1 {
       color: #2c3e50;
       font-size: 1.8em;
-      margin-bottom: 15px;
-      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    small {
+      font-size: 0.7em;
+      color: #777;
+      display: block;
+      margin-bottom: 20px;
     }
 
     .question {
@@ -46,12 +52,6 @@
       margin-bottom: 20px;
       color: #2980b9;
       font-weight: bold;
-    }
-
-    .instruction {
-      font-size: 1em;
-      color: #666;
-      margin-bottom: 15px;
     }
 
     input[type="number"] {
@@ -65,13 +65,6 @@
       outline: none;
     }
 
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
     button {
       background-color: #f39c12;
       color: white;
@@ -83,28 +76,25 @@
       transition: all 0.3s ease;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       width: 100%;
+      margin-top: 10px;
     }
 
     button:hover {
       background-color: #e67e22;
-      transform: scale(1.03);
     }
 
-    .help-button {
-      background-color: #9b59b6;
+    .coins {
+      margin-top: 15px;
+      font-size: 1.1em;
+      color: gold;
     }
 
-    .help-button:hover {
-      background-color: #8e44ad;
-    }
-
-    /* Confeti extendido */
+    /* Confeti */
     .confetti {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
       pointer-events: none;
       z-index: 9999;
       overflow: hidden;
@@ -114,9 +104,9 @@
       position: absolute;
       width: 10px;
       height: 10px;
-      opacity: 0.8;
+      opacity: 1;
       border-radius: 50%;
-      animation: fall linear infinite;
+      animation: fall linear forwards;
       will-change: transform, opacity;
     }
 
@@ -125,97 +115,58 @@
         transform: translateY(-50px) rotate(0deg);
         opacity: 1;
       }
+      90% {
+        opacity: 1;
+      }
       100% {
         transform: translateY(110vh) rotate(720deg);
         opacity: 0;
       }
     }
 
-    /* Modal base */
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.6);
       justify-content: center;
       align-items: center;
       z-index: 1000;
     }
 
     .modal-content {
-      background-color: #fff;
+      background: white;
       padding: 25px;
       border-radius: 20px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.2);
       text-align: left;
-      animation: fadeIn 0.3s ease-in-out;
-      z-index: 1001;
     }
 
     .modal-header {
       font-size: 1.4em;
       font-weight: bold;
-      margin-bottom: 15px;
-      color: #2c3e50;
-    }
-
-    .modal-body {
-      font-size: 1em;
-      line-height: 1.5;
-      color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     .close-btn {
-      background-color: #e74c3c;
+      background: #e74c3c;
       color: white;
       border: none;
       padding: 10px 20px;
-      font-size: 1em;
       border-radius: 10px;
+      margin-top: 10px;
       cursor: pointer;
       width: 100%;
-      margin-top: 10px;
     }
 
-    .close-btn:hover {
-      background-color: #c0392b;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @media (max-width: 500px) {
-      .question {
-        font-size: 1.7em;
-      }
-
-      input[type="number"] {
-        font-size: 1.3em;
-        width: 90%;
-      }
-
-      button {
-        font-size: 1em;
-      }
-
-      .modal-content {
-        padding: 20px;
-        border-radius: 15px;
-      }
-
-      .modal-header {
-        font-size: 1.2em;
-      }
-
-      .modal-body {
-        font-size: 0.95em;
-      }
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -225,22 +176,31 @@
   <div class="confetti" id="confettiContainer"></div>
 
   <!-- Interfaz principal -->
-  <div class="container">
-    <h1>EDUKIDS 🧒🔢<br><small style="font-size:0.7em; color:#777;">Aprende con Operaciones</small></h1>
+  <div class="container" id="mainApp" style="display:none;">
+    <h1>EDUKIDS 🧒🔢</h1>
+    <small>Aprende con operaciones</small>
 
-    <p class="instruction">¡Resuelve la operación y escribe tu respuesta abajo!</p>
+    <p id="levelInfo">Nivel: Básico (1-10)</p>
+    <div class="coins" id="coinsDisplay">💰 Monedas: 0</div>
 
     <div class="question" id="question">Cargando pregunta...</div>
-
     <input type="number" id="answerInput" placeholder="Tu respuesta aquí" />
     <br/>
-
     <button onclick="checkAnswer()">✅ Enviar Respuesta</button>
 
     <div class="buttons">
       <button onclick="nextQuestion()">🔁 Nuevo Ejercicio</button>
-      <button onclick="openModeModal()">🎮 Elegir Operación</button>
-      <button class="help-button" onclick="showHelp()">❓ Ayuda</button>
+      <button onclick="openModeModal()">🎮 Cambiar Modo</button>
+      <button onclick="showHelp()">❓ Ayuda</button>
+    </div>
+  </div>
+
+  <!-- Pantalla de selección de edad -->
+  <div class="container" id="ageSelector">
+    <h1>¿Cuántos años tienes? 😊</h1>
+    <div class="buttons">
+      <button onclick="setLevel('basic')">👶 5-7 años</button>
+      <button onclick="setLevel('advanced')">👦 8-10 años</button>
     </div>
   </div>
 
@@ -248,23 +208,38 @@
   <div class="modal" id="modeModal">
     <div class="modal-content">
       <div class="modal-header">⚙️ Cambiar Modo</div>
-      <div class="modal-body">
-        <label for="operation">Selecciona la operación:</label>
-        <select id="operation" onchange="generateQuestion()">
-          <option value="multiplication">Multiplicación</option>
-          <option value="addition">Suma</option>
-          <option value="subtraction">Resta</option>
-          <option value="division">División</option>
-        </select>
-        <br/>
-        <label for="range">Rango de números:</label>
-        <select id="range" onchange="generateQuestion()">
-          <option value="10">1 - 10</option>
-          <option value="12">1 - 12</option>
-          <option value="15">1 - 15</option>
-        </select>
-      </div>
+      <label for="operation">Operación:</label>
+      <select id="operation" onchange="generateQuestion()">
+        <option value="multiplication">Multiplicación</option>
+        <option value="addition">Suma</option>
+        <option value="subtraction">Resta</option>
+        <option value="division">División</option>
+      </select><br/>
+      <label for="range">Rango:</label>
+      <select id="range" onchange="generateQuestion()">
+        <option value="10">1 - 10</option>
+        <option value="12">1 - 12</option>
+        <option value="15">1 - 15</option>
+      </select>
       <button class="close-btn" onclick="closeModeModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal de Éxito -->
+  <div class="modal" id="successModal">
+    <div class="modal-content">
+      <div class="modal-header">🎉 ¡Excelente!</div>
+      <div class="modal-body" id="successBody">🌟 ¡Lo lograste! Sigue así.</div>
+      <button class="close-btn" onclick="closeSuccessModal()">Siguiente</button>
+    </div>
+  </div>
+
+  <!-- Modal de Error -->
+  <div class="modal" id="errorModal">
+    <div class="modal-content">
+      <div class="modal-header" id="errorHeader">⚠️ ¡Ups! 😕</div>
+      <div class="modal-body" id="errorBody">Olvidaste escribir tu respuesta...</div>
+      <button class="close-btn" onclick="closeErrorModal()">Continuar</button>
     </div>
   </div>
 
@@ -277,57 +252,59 @@
     </div>
   </div>
 
-  <!-- Modal de Éxito -->
-  <div class="modal" id="successModal">
-    <div class="modal-content">
-      <div class="modal-header">🎉 ¡Excelente!</div>
-      <div class="modal-body" id="successBody">
-        🌟 ¡Lo lograste! Muy bien hecho, sigues aprendiendo cada día más.
-      </div>
-      <button class="close-btn" onclick="closeSuccessModal()">Siguiente</button>
-    </div>
-  </div>
-
-  <!-- Modal de Error -->
-  <div class="modal" id="errorModal">
-    <div class="modal-content">
-      <div class="modal-header" id="errorHeader"></div>
-      <div class="modal-body" id="errorBody"></div>
-      <button class="close-btn" onclick="closeErrorModal()">Continuar</button>
-    </div>
-  </div>
-
   <script>
     let num1 = 0;
     let num2 = 0;
     let correctAnswer = 0;
+    let coins = 0;
+    let currentLevel = "basic"; // basic | advanced
+
+    const sounds = {
+      success: new Audio("https://www.soundjay.com/button/sounds/button-16.mp3"),
+      error: new Audio("https://www.soundjay.com/button/sounds/button-10.mp3")
+    };
+
+    function setLevel(level) {
+      currentLevel = level;
+      document.getElementById("ageSelector").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+
+      if (level === "basic") {
+        document.getElementById("range").value = "10";
+        document.getElementById("levelInfo").textContent = "Nivel: Básico (1-10)";
+      } else {
+        document.getElementById("range").value = "15";
+        document.getElementById("levelInfo").textContent = "Nivel: Avanzado (1-15)";
+      }
+
+      generateQuestion();
+    }
 
     function generateQuestion() {
       const rangeVal = parseInt(document.getElementById("range").value);
       const operation = document.getElementById("operation").value;
-      const questionDiv = document.getElementById("question");
 
       if (operation === "multiplication") {
         num1 = Math.floor(Math.random() * rangeVal) + 1;
         num2 = Math.floor(Math.random() * rangeVal) + 1;
         correctAnswer = num1 * num2;
-        questionDiv.textContent = `${num1} × ${num2} = ?`;
+        document.getElementById("question").textContent = `${num1} × ${num2} = ?`;
       } else if (operation === "addition") {
         num1 = Math.floor(Math.random() * rangeVal) + 1;
         num2 = Math.floor(Math.random() * rangeVal) + 1;
         correctAnswer = num1 + num2;
-        questionDiv.textContent = `${num1} + ${num2} = ?`;
+        document.getElementById("question").textContent = `${num1} + ${num2} = ?`;
       } else if (operation === "subtraction") {
         num1 = Math.floor(Math.random() * rangeVal) + 1;
         num2 = Math.floor(Math.random() * rangeVal) + 1;
         [num1, num2] = [Math.max(num1, num2), Math.min(num1, num2)];
         correctAnswer = num1 - num2;
-        questionDiv.textContent = `${num1} − ${num2} = ?`;
+        document.getElementById("question").textContent = `${num1} − ${num2} = ?`;
       } else if (operation === "division") {
         num2 = Math.floor(Math.random() * (rangeVal - 1)) + 1;
         correctAnswer = Math.floor(Math.random() * rangeVal) + 1;
         num1 = num2 * correctAnswer;
-        questionDiv.textContent = `${num1} ÷ ${num2} = ?`;
+        document.getElementById("question").textContent = `${num1} ÷ ${num2} = ?`;
       }
 
       document.getElementById("answerInput").value = "";
@@ -337,15 +314,20 @@
       const userAnswer = parseFloat(document.getElementById("answerInput").value);
 
       if (isNaN(userAnswer)) {
-        openErrorModal("⚠️ ¡Ups! 😕", "Olvidaste escribir tu respuesta... No pasa nada, inténtalo nuevamente.");
+        openErrorModal("⚠️ ¡Ups! 😕", "Escribe un número para responder.");
+        playSound("error");
         return;
       }
 
       if (userAnswer === correctAnswer) {
         showConfetti();
+        coins += 1;
+        updateCoins();
         openSuccessModal();
+        playSound("success");
       } else {
-        openErrorModal("⚠️ ¡Ups! 😕", `La respuesta no era esa... pero tranquilo, todos cometemos errores.<br><br>La respuesta correcta era: <strong>${correctAnswer}</strong>.<br><br>👏 ¡Vamos! Estoy seguro que lo harás genial en el siguiente.`);
+        openErrorModal("⚠️ ¡Ups! 😕", `La respuesta era: <strong>${correctAnswer}</strong>.<br><br>👏 ¡Vamos! Puedes hacerlo mejor.`);
+        playSound("error");
       }
     }
 
@@ -353,73 +335,17 @@
       generateQuestion();
     }
 
-    // Funciones modales
-    function openModeModal() {
-      document.getElementById("modeModal").style.display = "flex";
+    function updateCoins() {
+      document.getElementById("coinsDisplay").textContent = `💰 Monedas: ${coins}`;
     }
 
-    function closeModeModal() {
-      document.getElementById("modeModal").style.display = "none";
+    function playSound(type) {
+      sounds[type].currentTime = 0;
+      sounds[type].play();
     }
 
-    function showHelp() {
-      const operation = document.getElementById("operation").value;
-      const title = document.getElementById("modalTitle");
-      const body = document.getElementById("modalBody");
-
-      switch (operation) {
-        case "multiplication":
-          title.textContent = "✖️ ¡Aprende a Multiplicar!";
-          body.innerHTML = "La multiplicación es como sumar varias veces el mismo número.<br><br>Ejemplo: 3 × 4 = 12 → Esto significa que sumas 3 + 3 + 3 + 3 = 12.<br><br>💡 Tip: Si no estás seguro, puedes ir sumando poco a poco hasta llegar al resultado.";
-          break;
-        case "addition":
-          title.textContent = "➕ ¡Aprende a Sumar!";
-          body.innerHTML = "La suma es juntar dos o más cantidades para saber cuánto hay en total.<br><br>Ejemplo: 5 + 3 = 8 → Si tienes 5 manzanas y consigues 3 más, tendrás 8 manzanas en total.<br><br>💡 Tip: Usa tus dedos o dibuja palitos para contar si te confundes.";
-          break;
-        case "subtraction":
-          title.textContent = "➖ ¡Aprende a Restar!";
-          body.innerHTML = "La resta es quitar una cantidad de otra para ver qué queda.<br><br>Ejemplo: 7 − 2 = 5 → Si tienes 7 caramelos y te comes 2, te quedan 5.<br><br>💡 Tip: Si te cuesta restar, empieza desde el número menor y ve contando hacia arriba.";
-          break;
-        case "division":
-          title.textContent = "➗ ¡Aprende a Dividir!";
-          body.innerHTML = "La división es repartir algo en partes iguales.<br><br>Ejemplo: 12 ÷ 3 = 4 → Si tienes 12 galletas y las repartes entre 3 amigos, cada uno recibe 4.<br><br>💡 Tip: Piensa en cuántas veces cabe un número dentro de otro.";
-          break;
-        default:
-          title.textContent = "📘 Ayuda General";
-          body.innerHTML = "Elige una operación arriba para recibir ayuda específica sobre ella.";
-      }
-
-      document.getElementById("helpModal").style.display = "flex";
-    }
-
-    function closeHelp() {
-      document.getElementById("helpModal").style.display = "none";
-    }
-
-    function openErrorModal(header, message) {
-      document.getElementById("errorHeader").innerHTML = header;
-      document.getElementById("errorBody").innerHTML = message;
-      document.getElementById("errorModal").style.display = "flex";
-    }
-
-    function closeErrorModal() {
-      document.getElementById("errorModal").style.display = "none";
-      nextQuestion();
-    }
-
-    function openSuccessModal() {
-      document.getElementById("successModal").style.display = "flex";
-    }
-
-    function closeSuccessModal() {
-      document.getElementById("successModal").style.display = "none";
-      nextQuestion();
-    }
-
-    // Animación de confeti
     function showConfetti() {
       const container = document.getElementById("confettiContainer");
-      container.innerHTML = "";
 
       const colors = ["#f39c12", "#e74c3c", "#2ecc71", "#3498db", "#9b59b6"];
 
@@ -436,11 +362,82 @@
       }
 
       setTimeout(() => {
+        Array.from(container.children).forEach(el => {
+          el.style.transition = "opacity 0.5s ease-out";
+          el.style.opacity = "0";
+        });
+      }, 2500); // Inicia el fadeOut después de 2.5 segundos
+
+      setTimeout(() => {
         container.innerHTML = "";
-      }, 3000);
+      }, 3500); // Limpia todo suavemente
     }
 
-    window.onload = generateQuestion;
+    // Funciones modales
+    function openModeModal() {
+      document.getElementById("modeModal").style.display = "flex";
+    }
+
+    function closeModeModal() {
+      document.getElementById("modeModal").style.display = "none";
+    }
+
+    function showHelp() {
+      const op = document.getElementById("operation").value;
+      const title = document.getElementById("modalTitle");
+      const body = document.getElementById("modalBody");
+
+      switch(op) {
+        case "multiplication":
+          title.textContent = "✖️ Multiplicar es fácil";
+          body.innerHTML = "Es sumar varias veces el mismo número.<br>Ejemplo: 3×4 = 3+3+3+3 = 12.";
+          break;
+        case "addition":
+          title.textContent = "➕ Sumar es juntar";
+          body.innerHTML = "Ejemplo: 5 + 3 = 8<br>Si tienes 5 manzanas y consigues 3 más, tendrás 8.";
+          break;
+        case "subtraction":
+          title.textContent = "➖ Restar es quitar";
+          body.innerHTML = "Ejemplo: 7−2 = 5<br>Tienes 7 caramelos y te comes 2, te quedan 5.";
+          break;
+        case "division":
+          title.textContent = "➗ Dividir es repartir";
+          body.innerHTML = "Ejemplo: 12÷3 = 4<br>Reparte 12 galletas entre 3 amigos, cada uno recibe 4.";
+          break;
+      }
+
+      document.getElementById("helpModal").style.display = "flex";
+    }
+
+    function closeHelp() {
+      document.getElementById("helpModal").style.display = "none";
+    }
+
+    function openSuccessModal() {
+      document.getElementById("successModal").style.display = "flex";
+    }
+
+    function closeSuccessModal() {
+      document.getElementById("successModal").style.display = "none";
+      nextQuestion();
+    }
+
+    function openErrorModal(header, message) {
+      document.getElementById("errorHeader").innerHTML = header;
+      document.getElementById("errorBody").innerHTML = message;
+      document.getElementById("errorModal").style.display = "flex";
+    }
+
+    function closeErrorModal() {
+      document.getElementById("errorModal").style.display = "none";
+      nextQuestion();
+    }
+
+    window.onload = () => {
+      document.getElementById("operation").addEventListener("change", generateQuestion);
+      document.getElementById("range").addEventListener("change", generateQuestion);
+      document.getElementById("mainApp").style.display = "none";
+    };
   </script>
 </body>
 </html>
