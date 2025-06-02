@@ -302,11 +302,19 @@
       font-size: 1.3em;
       font-weight: bold;
       color: #f39c12;
-    }
-
-    .coin-icon {
-      font-size: 1.5em;
+    }    .coin-icon {
+      width: 24px;
+      height: 24px;
       animation: coinGlow 2s ease-in-out infinite alternate;
+      filter: drop-shadow(0 2px 4px rgba(255, 178, 0, 0.3));
+    }
+    
+    .coin-icon-img {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      animation: coinGlow 2s ease-in-out infinite alternate;
+      filter: drop-shadow(0 2px 4px rgba(255, 178, 0, 0.3));
     }
 
     .hearts {
@@ -807,9 +815,8 @@
           </div>
         </div>
         
-        <div class="score-info">
-          <div class="coins">
-            <span class="coin-icon">🪙</span>
+        <div class="score-info">        <div class="coins">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNGRkQ3MDAiIHN0cm9rZT0iI0ZGQjAwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik05IDEyaDZNMTIgOXY2IiBzdHJva2U9IiNGRkIwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjx0ZXh0IHg9IjEyIiB5PSIxNyIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0ZGQjAwMCI+JDwvdGV4dD4KPC9zdmc+" alt="💰" class="coin-icon">
             <span id="totalCoins">0</span>
           </div>
           <div class="hearts">
@@ -889,7 +896,7 @@
             <span class="stat-value" id="profileLevel">1</span>
           </div>          <div class="stat-item">
             <span class="stat-label">Total de Monedas:</span>
-            <span class="stat-value">🪙 <span id="profileCoins">0</span></span>
+            <span class="stat-value"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNGRkQ3MDAiIHN0cm9rZT0iI0ZGQjAwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik05IDEyaDZNMTIgOXY2IiBzdHJva2U9IiNGRkIwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjx0ZXh0IHg9IjEyIiB5PSIxNyIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0ZGQjAwMCI+JDwvdGV4dD4KPC9zdmc+" alt="💰" class="coin-icon-img"> <span id="profileCoins">0</span></span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Respuestas Correctas:</span>
@@ -1298,7 +1305,7 @@
       if (gameState.combo > 1) {
         message += ` Combo x${gameState.combo}! 🔥`;
       }
-      message += ` +${coinsEarned} monedas 🪙`;
+      message += ` +${coinsEarned} monedas 💰`;
       
       showFeedback(message, 'success');
       
@@ -1373,6 +1380,7 @@
       updateUI();
       saveGameData();
       
+      // Generar nueva pregunta con la operación del nuevo nivel después del mensaje
       setTimeout(() => {
         generateNewQuestion();
       }, 4000); // Más tiempo para leer el mensaje
@@ -1382,7 +1390,7 @@
       const accuracy = Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100);
       let message = `🎮 ¡Fin del juego!\n\n`;
       message += `Nivel alcanzado: ${gameState.currentLevel}\n`;
-      message += `Monedas ganadas: ${gameState.coins} 🪙\n`;
+      message += `Monedas ganadas: ${gameState.coins} 💰\n`;
       message += `Precisión: ${accuracy}%\n\n`;
       message += `¡Sigue practicando para mejorar! 💪`;
       
@@ -1537,8 +1545,7 @@
       const accuracy = gameState.totalQuestions > 0 
         ? Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100)
         : 0;
-      if (profileAccuracyEl) profileAccuracyEl.textContent = `${accuracy}%`;
-    }
+      if (profileAccuracyEl) profileAccuracyEl.textContent = `${accuracy}%`;    }
 
     // === EFECTOS VISUALES ===
     function showFeedback(message, type) {
@@ -1555,30 +1562,31 @@
       // Mensaje específico según el nuevo nivel
       switch (level) {
         case 2:
-          operationMessage = '<p>🆕 <strong>Nueva operación:</strong> ¡Aprenderás RESTAS! ➖</p><p>Ejemplo: 5 - 2 = ?</p>';
+          operationMessage = '<p>🆕 <strong>¡Nueva operación desbloqueada!</strong></p><p>📚 Ahora aprenderás <strong>RESTAS</strong> ➖</p><p>💡 Ejemplo: 5 - 2 = ? (Respuesta: 3)</p><p>🎯 Las restas nos ayudan a quitar cantidades</p>';
           break;
         case 3:
-          operationMessage = '<p>🆕 <strong>Nueva operación:</strong> ¡Aprenderás MULTIPLICACIÓN! ✖️</p><p>Ejemplo: 3 × 4 = ?</p>';
+          operationMessage = '<p>🆕 <strong>¡Nueva operación desbloqueada!</strong></p><p>📚 Ahora aprenderás <strong>MULTIPLICACIÓN</strong> ✖️</p><p>💡 Ejemplo: 3 × 4 = ? (Respuesta: 12)</p><p>🎯 Multiplicar es sumar varias veces el mismo número</p>';
           break;
         case 4:
-          operationMessage = '<p>🆕 <strong>Nueva operación:</strong> ¡Aprenderás DIVISIÓN! ➗</p><p>Ejemplo: 12 ÷ 3 = ?</p>';
+          operationMessage = '<p>🆕 <strong>¡Nueva operación desbloqueada!</strong></p><p>📚 Ahora aprenderás <strong>DIVISIÓN</strong> ➗</p><p>💡 Ejemplo: 12 ÷ 3 = ? (Respuesta: 4)</p><p>🎯 Dividir es repartir en partes iguales</p>';
           break;
         case 5:
-          operationMessage = '<p>🌟 <strong>¡Nivel experto!</strong> ¡Ahora encontrarás TODAS las operaciones mezcladas! 🎯</p><p>+, -, ×, ÷ ¡Ponte a prueba!</p>';
+          operationMessage = '<p>🌟 <strong>¡Nivel Experto Desbloqueado!</strong></p><p>🎯 Ahora encontrarás <strong>TODAS las operaciones mezcladas</strong></p><p>➕ Sumas, ➖ Restas, ✖️ Multiplicación, ➗ División</p><p>💪 ¡Ponte a prueba con el desafío completo!</p>';
           break;
         default:
           if (level > 5) {
-            operationMessage = '<p>🏆 <strong>¡Eres un experto!</strong> Operaciones mezcladas con mayor dificultad 💪</p>';
+            operationMessage = '<p>🏆 <strong>¡Eres un Maestro de las Matemáticas!</strong></p><p>💪 Operaciones mezcladas con mayor dificultad</p><p>🚀 ¡Sigue superándote!</p>';
           }
       }
       
       elements.levelUpMessage.innerHTML = `
         <div class="level-up-content">
-          <h2>🎉 ¡NIVEL ${gameState.currentLevel}! 🎉</h2>
-          <p>¡Excelente trabajo!</p>
+          <h2>🎉 ¡NIVEL ${gameState.currentLevel} ALCANZADO! 🎉</h2>
+          <p>¡Excelente trabajo superando el nivel anterior!</p>
           ${operationMessage}
-          <p>+${gameState.currentLevel * 50} monedas de bonificación 🪙</p>
-          <p>+1 corazón recuperado ❤️</p>
+          <p>🎁 +${gameState.currentLevel * 50} monedas de bonificación</p>
+          <p>❤️ +1 corazón recuperado</p>
+          <p><small>¡Prepárate para el siguiente desafío!</small></p>
         </div>
       `;
       elements.levelUpMessage.classList.add('show');
