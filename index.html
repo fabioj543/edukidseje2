@@ -994,7 +994,8 @@
       }
     });
 
-    function setupEventListeners() {      // Botón de comenzar juego
+    function setupEventListeners() {
+      // Botón de comenzar juego
       elements.startGameBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1007,13 +1008,15 @@
           checkAnswer();
         }
       });
-        // Botón de enviar respuesta
+      
+      // Botón de enviar respuesta
       elements.submitAnswer.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         checkAnswer();
       });
-        // Botones de control
+      
+      // Botones de control
       elements.hintBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1039,7 +1042,8 @@
         e.stopPropagation();
         resetProgress();
       });
-        // Opciones múltiples
+      
+      // Opciones múltiples
       document.querySelectorAll('.option-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
           e.preventDefault();
@@ -1051,18 +1055,18 @@
       // Validación en tiempo real del formulario
       elements.kidName.addEventListener('input', validateForm);
       elements.kidAge.addEventListener('change', validateForm);
-    }    // === GESTIÓN DE PANTALLAS ===
+    }
+
+    // === GESTIÓN DE PANTALLAS ===
     function showScreen(screenName) {
       Object.values(screens).forEach(screen => screen.style.display = 'none');
       screens[screenName].style.display = 'block';
       
       if (screenName === 'profile') {
-        // Asegurar que se actualicen las estadísticas del perfil
-        setTimeout(() => {
-          updateProfileStats();
-        }, 100);
-      }
-    }    // === LÓGICA DEL JUEGO ===
+        updateProfileStats();
+      }    }
+
+    // === LÓGICA DEL JUEGO ===
     function startGame() {
       const name = elements.kidName.value.trim();
       const age = parseInt(elements.kidAge.value);
@@ -1072,63 +1076,76 @@
         return;
       }
       
-      // Si es un nuevo jugador, reiniciar estadísticas
-      if (gameState.playerName !== name || gameState.playerAge !== age) {
-        gameState.correctAnswers = 0;
-        gameState.totalQuestions = 0;
-        gameState.coins = 0;
-        gameState.currentLevel = 1;
-        gameState.currentQuestion = 1;
-        gameState.hearts = 3;
-        gameState.combo = 0;
-      }
-      
       gameState.playerName = name;
       gameState.playerAge = age;
       gameState.difficulty = Math.max(1, Math.floor(age / 2) - 1);
-      
-      updateUI();
+        updateUI();
       saveGameData();
       showScreen('game');
-      generateNewQuestion();
       
-      showFeedback(`¡Hola ${name}! 🎉 ¡Empezemos a aprender!`, 'success');
+      // Mostrar mensaje de bienvenida con información del nivel 1
+      setTimeout(() => {
+        showFeedback(`¡Hola ${name}! 🎉 Comenzaremos con SUMAS ➕. Ejemplo: 2 + 3 = ?`, 'success');
+      }, 500);
+      
+      setTimeout(() => {
+        generateNewQuestion();
+      }, 2000);
     }
-
+    
     function generateNewQuestion() {
       // Determinar tipo de operación basado en nivel y edad
       const operations = getAvailableOperations();
       const operation = operations[Math.floor(Math.random() * operations.length)];
+      currentQuestion.operation = operation;
       
       // Determinar si usar opción múltiple
       gameState.isMultipleChoice = gameState.currentLevel > 2 && Math.random() < 0.3;
       
-      // Generar números según dificultad
-      const range = getDifficultyRange();
-      currentQuestion.num1 = Math.floor(Math.random() * range.max) + range.min;
-      currentQuestion.num2 = Math.floor(Math.random() * range.max) + range.min;
-      currentQuestion.operation = operation;
-      
-      // Calcular respuesta correcta
-      switch (operation) {
-        case '+':
+      // Generar números según operación específica
+      if (operation === '÷') {
+        // Para división: generar dividendo que sea múltiplo del divisor
+        const level = gameState.currentLevel;
+        let maxDivisor, maxResult;
+        
+        if (level <= 2) { maxDivisor = 5; maxResult = 5; }
+        else if (level <= 4) { maxDivisor = 10; maxResult = 10; }
+        else if (level <= 6) { maxDivisor = 12; maxResult = 12; }
+        else { maxDivisor = 15; maxResult = 15; }
+        
+        currentQuestion.num2 = Math.floor(Math.random() * (maxDivisor - 2)) + 2;
+        currentQuestion.answer = Math.floor(Math.random() * maxResult) + 1;
+        currentQuestion.num1 = currentQuestion.num2 * currentQuestion.answer;
+        
+      } else if (operation === '×') {
+        // Para multiplicación: números más pequeños
+        const level = gameState.currentLevel;
+        let maxNum;
+        
+        if (level <= 2) maxNum = 5;
+        else if (level <= 4) maxNum = 10;
+        else if (level <= 6) maxNum = 12;
+        else maxNum = 15;
+        
+        currentQuestion.num1 = Math.floor(Math.random() * (maxNum - 1)) + 1;
+        currentQuestion.num2 = Math.floor(Math.random() * (maxNum - 1)) + 1;
+        currentQuestion.answer = currentQuestion.num1 * currentQuestion.num2;
+        
+      } else {
+        // Para suma y resta: rangos normales
+        const range = getDifficultyRange();
+        currentQuestion.num1 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        currentQuestion.num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        
+        if (operation === '+') {
           currentQuestion.answer = currentQuestion.num1 + currentQuestion.num2;
-          break;
-        case '-':
+        } else if (operation === '-') {
           // Asegurar que el resultado sea positivo
           if (currentQuestion.num1 < currentQuestion.num2) {
             [currentQuestion.num1, currentQuestion.num2] = [currentQuestion.num2, currentQuestion.num1];
           }
           currentQuestion.answer = currentQuestion.num1 - currentQuestion.num2;
-          break;
-        case '×':
-          currentQuestion.answer = currentQuestion.num1 * currentQuestion.num2;
-          break;
-        case '÷':
-          // Asegurar división exacta
-          currentQuestion.answer = currentQuestion.num2;
-          currentQuestion.num1 = currentQuestion.num2 * (Math.floor(Math.random() * 10) + 1);
-          break;
+        }
       }
       
       // Mostrar pregunta
@@ -1147,19 +1164,19 @@
         elements.answerInput.value = '';
         elements.answerInput.focus();
       }
-      
-      updateProgressBar();
+        updateProgressBar();
       addQuestionAnimation();
     }
-
+    
     function getAvailableOperations() {
       const level = gameState.currentLevel;
-      const age = gameState.playerAge;
       
-      if (level <= 2 || age <= 6) return ['+'];
-      if (level <= 4 || age <= 7) return ['+', '-'];
-      if (level <= 6 || age <= 9) return ['+', '-', '×'];
-      return ['+', '-', '×', '÷'];
+      // Progresión por niveles específicos
+      if (level === 1) return ['+'];                    // Nivel 1: Solo sumas
+      if (level === 2) return ['-'];                    // Nivel 2: Solo restas  
+      if (level === 3) return ['×'];                    // Nivel 3: Solo multiplicación
+      if (level === 4) return ['÷'];                    // Nivel 4: Solo división
+      return ['+', '-', '×', '÷'];                      // Nivel 5+: Todas las operaciones
     }
 
     function getDifficultyRange() {
@@ -1197,12 +1214,13 @@
       
       // Actualizar botones
       const optionBtns = document.querySelectorAll('.option-btn');
-      optionBtns.forEach((btn, index) => {
-        btn.textContent = options[index];
+      optionBtns.forEach((btn, index) => {        btn.textContent = options[index];
         btn.dataset.value = options[index];
         btn.classList.remove('selected', 'correct', 'incorrect');
       });
-    }    function selectOption(value) {
+    }
+    
+    function selectOption(value) {
       // Remover selección anterior
       document.querySelectorAll('.option-btn').forEach(btn => {
         btn.classList.remove('selected');
@@ -1242,13 +1260,9 @@
       } else {
         handleIncorrectAnswer(userAnswer);
       }
-        updateUI();
-      saveGameData();
       
-      // Actualizar estadísticas del perfil si está visible
-      if (screens.profile.style.display !== 'none') {
-        updateProfileStats();
-      }
+      updateUI();
+      saveGameData();
       
       // Continuar al siguiente paso
       setTimeout(() => {
@@ -1347,9 +1361,7 @@
       }
       
       generateNewQuestion();
-    }
-
-    function levelUp() {
+    }    function levelUp() {
       gameState.currentLevel++;
       gameState.currentQuestion = 1;
       gameState.hearts = Math.min(5, gameState.hearts + 1); // Recuperar corazón, máximo 5
@@ -1363,7 +1375,7 @@
       
       setTimeout(() => {
         generateNewQuestion();
-      }, 3000);
+      }, 4000); // Más tiempo para leer el mensaje
     }
 
     function gameOver() {
@@ -1398,13 +1410,59 @@
       
       let hint = '';
       const answer = currentQuestion.answer;
+      const operation = currentQuestion.operation;
+      const num1 = currentQuestion.num1;
+      const num2 = currentQuestion.num2;
       
-      if (answer <= 10) {
-        hint = `💡 Pista: La respuesta está entre ${Math.max(1, answer - 2)} y ${answer + 2}`;
-      } else if (answer <= 100) {
-        hint = `💡 Pista: La respuesta está entre ${Math.max(1, answer - 10)} y ${answer + 10}`;
-      } else {
-        hint = `💡 Pista: La respuesta tiene ${answer.toString().length} dígitos`;
+      // Pistas específicas según el tipo de operación
+      switch (operation) {
+        case '+':
+          if (answer <= 10) {
+            hint = `💡 Pista: ${num1} + ${num2}. Cuenta hacia adelante desde ${num1}, ${num2} veces`;
+          } else if (answer <= 20) {
+            hint = `💡 Pista: La suma está entre ${answer - 3} y ${answer + 3}`;
+          } else {
+            hint = `💡 Pista: Suma las decenas: ${Math.floor(num1/10)*10} + ${Math.floor(num2/10)*10}, luego las unidades`;
+          }
+          break;
+          
+        case '-':
+          if (answer <= 10) {
+            hint = `💡 Pista: ${num1} - ${num2}. Cuenta hacia atrás desde ${num1}, ${num2} veces`;
+          } else if (answer <= 20) {
+            hint = `💡 Pista: La resta está entre ${answer - 3} y ${answer + 3}`;
+          } else {
+            hint = `💡 Pista: ¿Qué número sumado a ${num2} da ${num1}?`;
+          }
+          break;
+          
+        case '×':
+          if (num1 <= 5 && num2 <= 5) {
+            hint = `💡 Pista: ${num1} × ${num2} = ${num1} sumado ${num2} veces`;
+          } else if (num1 <= 10 && num2 <= 10) {
+            hint = `💡 Pista: Tabla del ${Math.min(num1, num2)}. La respuesta está entre ${answer - 5} y ${answer + 5}`;
+          } else {
+            hint = `💡 Pista: ${num1} × ${num2}. Multiplica las decenas primero`;
+          }
+          break;
+          
+        case '÷':
+          if (num1 <= 50) {
+            hint = `💡 Pista: ${num1} ÷ ${num2}. ¿Cuántas veces cabe ${num2} en ${num1}?`;
+          } else {
+            hint = `💡 Pista: ${num1} ÷ ${num2}. Piensa: ${num2} × ? = ${num1}`;
+          }
+          break;
+          
+        default:
+          // Pista general por si acaso
+          if (answer <= 10) {
+            hint = `💡 Pista: La respuesta está entre ${Math.max(1, answer - 2)} y ${answer + 2}`;
+          } else if (answer <= 100) {
+            hint = `💡 Pista: La respuesta está entre ${Math.max(1, answer - 10)} y ${answer + 10}`;
+          } else {
+            hint = `💡 Pista: La respuesta tiene ${answer.toString().length} dígitos`;
+          }
       }
       
       showFeedback(hint, 'info');
@@ -1460,7 +1518,7 @@
       elements.comboIndicator.style.display = 'none';
       elements.comboIndicator.classList.remove('pulse');
     }    function updateProfileStats() {
-      // Actualizar elementos del perfil
+      // Actualizar elementos del perfil de forma segura
       const profileNameEl = document.getElementById('profileName');
       const profileAgeEl = document.getElementById('profileAge');
       const profileLevelEl = document.getElementById('profileLevel');
@@ -1469,12 +1527,12 @@
       const profileTotalEl = document.getElementById('profileTotal');
       const profileAccuracyEl = document.getElementById('profileAccuracy');
       
-      if (profileNameEl) profileNameEl.textContent = gameState.playerName;
-      if (profileAgeEl) profileAgeEl.textContent = `${gameState.playerAge} años`;
-      if (profileLevelEl) profileLevelEl.textContent = gameState.currentLevel;
-      if (profileCoinsEl) profileCoinsEl.textContent = gameState.coins;
-      if (profileCorrectEl) profileCorrectEl.textContent = gameState.correctAnswers;
-      if (profileTotalEl) profileTotalEl.textContent = gameState.totalQuestions;
+      if (profileNameEl) profileNameEl.textContent = gameState.playerName || '-';
+      if (profileAgeEl) profileAgeEl.textContent = gameState.playerAge ? `${gameState.playerAge} años` : '-';
+      if (profileLevelEl) profileLevelEl.textContent = gameState.currentLevel || 1;
+      if (profileCoinsEl) profileCoinsEl.textContent = gameState.coins || 0;
+      if (profileCorrectEl) profileCorrectEl.textContent = gameState.correctAnswers || 0;
+      if (profileTotalEl) profileTotalEl.textContent = gameState.totalQuestions || 0;
       
       const accuracy = gameState.totalQuestions > 0 
         ? Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100)
@@ -1490,13 +1548,35 @@
       setTimeout(() => {
         elements.feedbackMessage.classList.remove('show');
       }, 3000);
-    }
-
-    function showLevelUpMessage() {
+    }    function showLevelUpMessage() {
+      let operationMessage = '';
+      const level = gameState.currentLevel;
+      
+      // Mensaje específico según el nuevo nivel
+      switch (level) {
+        case 2:
+          operationMessage = '<p>🆕 <strong>Nueva operación:</strong> ¡Aprenderás RESTAS! ➖</p><p>Ejemplo: 5 - 2 = ?</p>';
+          break;
+        case 3:
+          operationMessage = '<p>🆕 <strong>Nueva operación:</strong> ¡Aprenderás MULTIPLICACIÓN! ✖️</p><p>Ejemplo: 3 × 4 = ?</p>';
+          break;
+        case 4:
+          operationMessage = '<p>🆕 <strong>Nueva operación:</strong> ¡Aprenderás DIVISIÓN! ➗</p><p>Ejemplo: 12 ÷ 3 = ?</p>';
+          break;
+        case 5:
+          operationMessage = '<p>🌟 <strong>¡Nivel experto!</strong> ¡Ahora encontrarás TODAS las operaciones mezcladas! 🎯</p><p>+, -, ×, ÷ ¡Ponte a prueba!</p>';
+          break;
+        default:
+          if (level > 5) {
+            operationMessage = '<p>🏆 <strong>¡Eres un experto!</strong> Operaciones mezcladas con mayor dificultad 💪</p>';
+          }
+      }
+      
       elements.levelUpMessage.innerHTML = `
         <div class="level-up-content">
           <h2>🎉 ¡NIVEL ${gameState.currentLevel}! 🎉</h2>
           <p>¡Excelente trabajo!</p>
+          ${operationMessage}
           <p>+${gameState.currentLevel * 50} monedas de bonificación 🪙</p>
           <p>+1 corazón recuperado ❤️</p>
         </div>
@@ -1507,7 +1587,7 @@
       
       setTimeout(() => {
         elements.levelUpMessage.classList.remove('show');
-      }, 3000);
+      }, 4000); // Más tiempo para leer
     }
 
     function addQuestionAnimation() {
@@ -1575,31 +1655,17 @@
       } else {
         elements.startGameBtn.classList.remove('ready');
       }
-    }    // === GESTIÓN DE DATOS ===
+    }
+
+    // === GESTIÓN DE DATOS ===
     function saveGameData() {
-      try {
-        localStorage.setItem('edukids_gamestate', JSON.stringify(gameState));
-      } catch (error) {
-        console.warn('Error al guardar datos del juego:', error);
-      }
-    }function loadGameData() {
+      localStorage.setItem('edukids_gamestate', JSON.stringify(gameState));
+    }
+
+    function loadGameData() {
       const saved = localStorage.getItem('edukids_gamestate');
       if (saved) {
-        try {
-          const parsedData = JSON.parse(saved);
-          gameState = { ...gameState, ...parsedData };
-          
-          // Asegurar que los valores numéricos sean válidos
-          gameState.correctAnswers = gameState.correctAnswers || 0;
-          gameState.totalQuestions = gameState.totalQuestions || 0;
-          gameState.coins = gameState.coins || 0;
-          gameState.currentLevel = gameState.currentLevel || 1;
-          gameState.hearts = gameState.hearts || 3;
-          
-        } catch (error) {
-          console.warn('Error al cargar datos del juego:', error);
-          // Si hay error, usar valores por defecto
-        }
+        gameState = { ...gameState, ...JSON.parse(saved) };
       }
     }
 
