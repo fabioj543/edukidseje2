@@ -564,11 +564,17 @@
     .stat-label {
       font-weight: bold;
       color: #333;
-    }
-
-    .stat-value {
+    }    .stat-value {
       color: #667eea;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-value .coin-icon {
+      font-size: 1.2em;
+      animation: coinGlow 2s ease-in-out infinite alternate;
     }
 
     .profile-actions {
@@ -881,10 +887,9 @@
           <div class="stat-item">
             <span class="stat-label">Nivel Actual:</span>
             <span class="stat-value" id="profileLevel">1</span>
-          </div>
-          <div class="stat-item">
+          </div>          <div class="stat-item">
             <span class="stat-label">Total de Monedas:</span>
-            <span class="stat-value" id="profileCoins">0</span>
+            <span class="stat-value">🪙 <span id="profileCoins">0</span></span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Respuestas Correctas:</span>
@@ -989,9 +994,12 @@
       }
     });
 
-    function setupEventListeners() {
-      // Botón de comenzar juego
-      elements.startGameBtn.addEventListener('click', startGame);
+    function setupEventListeners() {      // Botón de comenzar juego
+      elements.startGameBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        startGame();
+      });
       
       // Input de respuesta
       elements.answerInput.addEventListener('keypress', function(e) {
@@ -999,20 +1007,43 @@
           checkAnswer();
         }
       });
-      
-      // Botón de enviar respuesta
-      elements.submitAnswer.addEventListener('click', checkAnswer);
-      
-      // Botones de control
-      elements.hintBtn.addEventListener('click', showHint);
-      elements.skipBtn.addEventListener('click', skipQuestion);
-      elements.profileBtn.addEventListener('click', () => showScreen('profile'));
-      elements.backToGameBtn.addEventListener('click', () => showScreen('game'));
-      elements.resetProgressBtn.addEventListener('click', resetProgress);
-      
-      // Opciones múltiples
+        // Botón de enviar respuesta
+      elements.submitAnswer.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        checkAnswer();
+      });
+        // Botones de control
+      elements.hintBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showHint();
+      });
+      elements.skipBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        skipQuestion();
+      });
+      elements.profileBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showScreen('profile');
+      });
+      elements.backToGameBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showScreen('game');
+      });
+      elements.resetProgressBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        resetProgress();
+      });
+        // Opciones múltiples
       document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
           selectOption(parseInt(this.dataset.value));
         });
       });
@@ -1020,19 +1051,18 @@
       // Validación en tiempo real del formulario
       elements.kidName.addEventListener('input', validateForm);
       elements.kidAge.addEventListener('change', validateForm);
-    }
-
-    // === GESTIÓN DE PANTALLAS ===
+    }    // === GESTIÓN DE PANTALLAS ===
     function showScreen(screenName) {
       Object.values(screens).forEach(screen => screen.style.display = 'none');
       screens[screenName].style.display = 'block';
       
       if (screenName === 'profile') {
-        updateProfileStats();
+        // Asegurar que se actualicen las estadísticas del perfil
+        setTimeout(() => {
+          updateProfileStats();
+        }, 100);
       }
-    }
-
-    // === LÓGICA DEL JUEGO ===
+    }    // === LÓGICA DEL JUEGO ===
     function startGame() {
       const name = elements.kidName.value.trim();
       const age = parseInt(elements.kidAge.value);
@@ -1040,6 +1070,17 @@
       if (!name || !age) {
         showFeedback('⚠️ Por favor completa todos los campos', 'warning');
         return;
+      }
+      
+      // Si es un nuevo jugador, reiniciar estadísticas
+      if (gameState.playerName !== name || gameState.playerAge !== age) {
+        gameState.correctAnswers = 0;
+        gameState.totalQuestions = 0;
+        gameState.coins = 0;
+        gameState.currentLevel = 1;
+        gameState.currentQuestion = 1;
+        gameState.hearts = 3;
+        gameState.combo = 0;
       }
       
       gameState.playerName = name;
@@ -1161,16 +1202,18 @@
         btn.dataset.value = options[index];
         btn.classList.remove('selected', 'correct', 'incorrect');
       });
-    }
-
-    function selectOption(value) {
+    }    function selectOption(value) {
       // Remover selección anterior
       document.querySelectorAll('.option-btn').forEach(btn => {
         btn.classList.remove('selected');
       });
       
-      // Seleccionar nueva opción
-      event.target.classList.add('selected');
+      // Seleccionar nueva opción - encontrar el botón correcto
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        if (parseInt(btn.dataset.value) === value) {
+          btn.classList.add('selected');
+        }
+      });
       
       // Verificar respuesta después de un pequeño delay
       setTimeout(() => {
@@ -1199,9 +1242,13 @@
       } else {
         handleIncorrectAnswer(userAnswer);
       }
-      
-      updateUI();
+        updateUI();
       saveGameData();
+      
+      // Actualizar estadísticas del perfil si está visible
+      if (screens.profile.style.display !== 'none') {
+        updateProfileStats();
+      }
       
       // Continuar al siguiente paso
       setTimeout(() => {
@@ -1412,20 +1459,27 @@
     function hideComboIndicator() {
       elements.comboIndicator.style.display = 'none';
       elements.comboIndicator.classList.remove('pulse');
-    }
-
-    function updateProfileStats() {
-      elements.profileName.textContent = gameState.playerName;
-      elements.profileAge.textContent = `${gameState.playerAge} años`;
-      elements.profileLevel.textContent = gameState.currentLevel;
-      elements.profileCoins.textContent = gameState.coins;
-      elements.profileCorrect.textContent = gameState.correctAnswers;
-      elements.profileTotal.textContent = gameState.totalQuestions;
+    }    function updateProfileStats() {
+      // Actualizar elementos del perfil
+      const profileNameEl = document.getElementById('profileName');
+      const profileAgeEl = document.getElementById('profileAge');
+      const profileLevelEl = document.getElementById('profileLevel');
+      const profileCoinsEl = document.getElementById('profileCoins');
+      const profileCorrectEl = document.getElementById('profileCorrect');
+      const profileTotalEl = document.getElementById('profileTotal');
+      const profileAccuracyEl = document.getElementById('profileAccuracy');
+      
+      if (profileNameEl) profileNameEl.textContent = gameState.playerName;
+      if (profileAgeEl) profileAgeEl.textContent = `${gameState.playerAge} años`;
+      if (profileLevelEl) profileLevelEl.textContent = gameState.currentLevel;
+      if (profileCoinsEl) profileCoinsEl.textContent = gameState.coins;
+      if (profileCorrectEl) profileCorrectEl.textContent = gameState.correctAnswers;
+      if (profileTotalEl) profileTotalEl.textContent = gameState.totalQuestions;
       
       const accuracy = gameState.totalQuestions > 0 
         ? Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100)
         : 0;
-      elements.profileAccuracy.textContent = `${accuracy}%`;
+      if (profileAccuracyEl) profileAccuracyEl.textContent = `${accuracy}%`;
     }
 
     // === EFECTOS VISUALES ===
@@ -1521,17 +1575,31 @@
       } else {
         elements.startGameBtn.classList.remove('ready');
       }
-    }
-
-    // === GESTIÓN DE DATOS ===
+    }    // === GESTIÓN DE DATOS ===
     function saveGameData() {
-      localStorage.setItem('edukids_gamestate', JSON.stringify(gameState));
-    }
-
-    function loadGameData() {
+      try {
+        localStorage.setItem('edukids_gamestate', JSON.stringify(gameState));
+      } catch (error) {
+        console.warn('Error al guardar datos del juego:', error);
+      }
+    }function loadGameData() {
       const saved = localStorage.getItem('edukids_gamestate');
       if (saved) {
-        gameState = { ...gameState, ...JSON.parse(saved) };
+        try {
+          const parsedData = JSON.parse(saved);
+          gameState = { ...gameState, ...parsedData };
+          
+          // Asegurar que los valores numéricos sean válidos
+          gameState.correctAnswers = gameState.correctAnswers || 0;
+          gameState.totalQuestions = gameState.totalQuestions || 0;
+          gameState.coins = gameState.coins || 0;
+          gameState.currentLevel = gameState.currentLevel || 1;
+          gameState.hearts = gameState.hearts || 3;
+          
+        } catch (error) {
+          console.warn('Error al cargar datos del juego:', error);
+          // Si hay error, usar valores por defecto
+        }
       }
     }
 
